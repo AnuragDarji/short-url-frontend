@@ -248,7 +248,7 @@ const Header = () => {
                   className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <User size={18} />
+                  <Link2 size={18} />
                   <span>URL History</span>
                 </Link>
                 {/* <Link
