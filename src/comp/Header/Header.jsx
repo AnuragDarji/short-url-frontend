@@ -243,14 +243,14 @@ const Header = () => {
               </div>
 
               <div className="space-y-2">
-                <Link
+                {/* <Link
                   to={ROUTES.URLHISTORY}
                   className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <Link2 size={18} />
                   <span>URL History</span>
-                </Link>
+                </Link> */}
                 {/* <Link
                   to="/settings"
                   className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors"
