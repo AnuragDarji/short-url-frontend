@@ -1,3 +1,4 @@
+import Footer from '@/comp/Footer/Footer'
 import Header from '@/comp/Header/Header'
 import React from 'react'
 import { Outlet } from 'react-router-dom'
@@ -8,6 +9,8 @@ const Layout = () => {
         <Header/>
 
         <Outlet/>
+
+        <Footer/>
     </div>
   )
 }

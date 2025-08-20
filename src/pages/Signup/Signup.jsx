@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Toaster, toast } from "sonner";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/constant/routes";
+import { Eye, EyeOff } from "lucide-react"; // 👈 icons for show/hide password
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +19,8 @@ const Signup = () => {
     agreeToTerms: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
@@ -30,7 +33,6 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
       toast.error("Password mismatch", {
         description: "Passwords do not match. Please try again.",
@@ -46,28 +48,22 @@ const Signup = () => {
     }
 
     setIsLoading(true);
-
-    // Show loading toast
     const loadingToast = toast.loading("Creating your account...");
 
     try {
-      // Prepare payload
       const payload = {
         name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         password: formData.password,
       };
 
-      // API call
       const response = await axios.post(
         "https://short-url-eight-beta.vercel.app/api/signup",
         payload
       );
 
-      console.log("Signup response:", response);
-
-      // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
+
       if (response.status === 200 || response.status === 201) {
         toast.success("Account created successfully!", {
           description:
@@ -76,7 +72,6 @@ const Signup = () => {
         });
       }
 
-      // Reset form
       setFormData({
         firstName: "",
         lastName: "",
@@ -86,16 +81,11 @@ const Signup = () => {
         agreeToTerms: false,
       });
     } catch (error) {
-      // Dismiss loading toast
       toast.dismiss(loadingToast);
 
-      console.error("Signup error:", error);
-
-      // Error handling
       let errorMessage = "An error occurred during signup. Please try again.";
 
       if (error.response) {
-        // Server responded with error status
         if (error.response.status === 409) {
           errorMessage = "Email already exists. Please use a different email.";
         } else if (error.response.status === 400) {
@@ -104,7 +94,6 @@ const Signup = () => {
           errorMessage = error.response.data.message || errorMessage;
         }
       } else if (error.request) {
-        // Request was made but no response received
         errorMessage = "Network error. Please check your connection.";
       }
 
@@ -117,15 +106,15 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
       <Toaster position="top-center" richColors closeButton />
       <div className="w-full max-w-md space-y-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+        <div className="bg-gray-800 rounded-lg shadow-md p-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            <h1 className="text-2xl font-bold text-white">
               Create an account
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-400">
               Enter your details to create your account
             </p>
           </div>
@@ -133,17 +122,14 @@ const Signup = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label
-                  htmlFor="firstName"
-                  className="text-gray-700 dark:text-gray-300"
-                >
+                <Label htmlFor="firstName" className="text-gray-300">
                   First Name
                 </Label>
                 <Input
                   id="firstName"
                   placeholder="John"
                   type="text"
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="bg-gray-700 border-gray-600 text-white"
                   value={formData.firstName}
                   onChange={handleChange}
                   required
@@ -151,17 +137,14 @@ const Signup = () => {
               </div>
 
               <div className="space-y-2">
-                <Label
-                  htmlFor="lastName"
-                  className="text-gray-700 dark:text-gray-300"
-                >
+                <Label htmlFor="lastName" className="text-gray-300">
                   Last Name
                 </Label>
                 <Input
                   id="lastName"
                   placeholder="Doe"
                   type="text"
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="bg-gray-700 border-gray-600 text-white"
                   value={formData.lastName}
                   onChange={handleChange}
                   required
@@ -170,60 +153,77 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="email"
-                className="text-gray-700 dark:text-gray-300"
-              >
+              <Label htmlFor="email" className="text-gray-300">
                 Email address
               </Label>
               <Input
                 id="email"
                 placeholder="name@example.com"
                 type="email"
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="bg-gray-700 border-gray-600 text-white"
                 value={formData.email}
                 onChange={handleChange}
                 required
               />
             </div>
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                className="text-gray-700 dark:text-gray-300"
-              >
+            {/* Password */}
+            <div className="space-y-2 relative">
+              <Label htmlFor="password" className="text-gray-300">
                 Password
               </Label>
-              <Input
-                id="password"
-                placeholder="••••••••"
-                type="password"
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="relative">
+                <Input
+                  id="password"
+                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
+                  className="bg-gray-700 border-gray-600 text-white pr-10"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400">
                 Must be at least 8 characters with one uppercase and one number
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="confirmPassword"
-                className="text-gray-700 dark:text-gray-300"
-              >
+            {/* Confirm Password */}
+            <div className="space-y-2 relative">
+              <Label htmlFor="confirmPassword" className="text-gray-300">
                 Confirm Password
               </Label>
-              <Input
-                id="confirmPassword"
-                placeholder="••••••••"
-                type="password"
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  placeholder="••••••••"
+                  type={showConfirmPassword ? "text" : "password"}
+                  className="bg-gray-700 border-gray-600 text-white pr-10"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -235,25 +235,19 @@ const Signup = () => {
                 }
                 required
               />
-              <Label
-                htmlFor="agreeToTerms"
-                className="text-gray-700 dark:text-gray-300"
-              >
+              <Label htmlFor="agreeToTerms" className="text-gray-300">
                 I agree to the Terms and Conditions
               </Label>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+          <div className="mt-6 text-center text-sm text-gray-400">
             Already have an account?{" "}
-            <Link
-              to={ROUTES.LOGIN}
-              className="text-primary hover:underline dark:text-primary-400"
-            >
+            <Link to={ROUTES.LOGIN} className="text-blue-400 hover:underline">
               Sign in
             </Link>
           </div>

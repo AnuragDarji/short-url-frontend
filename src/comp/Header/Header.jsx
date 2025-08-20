@@ -86,7 +86,7 @@ const Header = () => {
                 <div className="absolute -inset-1 bg-blue-500/20 rounded-lg blur-sm group-hover:bg-blue-500/30 transition-all duration-300 -z-10"></div>
               </div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                BrandName
+                Short.ly
               </h1>
             </Link>
           </div>
@@ -145,10 +145,11 @@ const Header = () => {
                   <div className="flex flex-col space-y-1">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`h-10 w-10 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center text-white font-medium shadow-inner`}
+                        className={`h-9 w-9 aspect-square rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow`}
                       >
                         {avatarInitials}
                       </div>
+
                       <div>
                         <p className="text-sm font-medium">{user.name}</p>
                         <p className="text-xs text-gray-400 truncate max-w-[160px]">
@@ -159,7 +160,7 @@ const Header = () => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-700" />
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   asChild
                   className="text-gray-300 focus:bg-blue-600 focus:text-white cursor-pointer py-2.5"
                 >
@@ -170,7 +171,7 @@ const Header = () => {
                     <Link2 className="mr-2 h-4 w-4" />
                     <span>URL History</span>
                   </Link>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 {/* <DropdownMenuItem className="text-gray-300 focus:bg-blue-600 focus:text-white cursor-pointer py-2.5">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>

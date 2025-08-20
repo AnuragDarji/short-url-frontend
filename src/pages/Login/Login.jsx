@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constant/routes";
 import { Toaster, toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,8 @@ const Login = () => {
     rememberMe: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -29,23 +32,19 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Show loading toast
     const loadingToast = toast.loading("Signing in...");
 
     try {
-      // Prepare payload
       const payload = {
         email: formData.email,
         password: formData.password,
       };
 
-      // API call
       const response = await axios.post(
         "https://short-url-eight-beta.vercel.app/api/login",
         payload
       );
 
-      // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
 
       if (response.status === 200 || response.status === 201) {
@@ -54,42 +53,24 @@ const Login = () => {
         });
       }
 
-      console.log("Login response:", response);
-
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      // Store token if remember me is checked
-      // if (formData.rememberMe && response.data.token) {
-      //   localStorage.setItem("token", response.data.token);
-      //   localStorage.setItem("user", JSON.stringify(response.data.user));
-      // } else if (response.data.token) {
-      //   sessionStorage.setItem("token", response.data.token);
-      //   localStorage.setItem("user", JSON.stringify(response.data.user));
-      // }
-
-      // Reset form
       setFormData({
         email: "",
         password: "",
         rememberMe: false,
       });
 
-      // Redirect to dashboard after a short delay
       setTimeout(() => {
         navigate(ROUTES.DASHBOARD);
       }, 1500);
     } catch (error) {
-      // Dismiss loading toast
       toast.dismiss(loadingToast);
 
-      console.error("Login error:", error);
-
-      // Error handling
       let errorMessage = "An error occurred during login. Please try again.";
 
       if (error.response) {
-        // Server responded with error status
         if (error.response.status === 401) {
           errorMessage = "Invalid email or password. Please try again.";
         } else if (error.response.status === 404) {
@@ -100,7 +81,6 @@ const Login = () => {
           errorMessage = error.response.data.message || errorMessage;
         }
       } else if (error.request) {
-        // Request was made but no response received
         errorMessage = "Network error. Please check your connection.";
       }
 
@@ -113,62 +93,66 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
       <Toaster position="top-center" richColors closeButton />
+
       <div className="w-full max-w-md space-y-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+        <div className="bg-gray-800 rounded-lg shadow-md p-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            <h1 className="text-2xl font-bold text-white">
               Welcome back
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-400">
               Enter your credentials to access your account
             </p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label
-                htmlFor="email"
-                className="text-gray-700 dark:text-gray-300"
-              >
+              <Label htmlFor="email" className="text-gray-300">
                 Email address
               </Label>
               <Input
                 id="email"
                 placeholder="name@example.com"
                 type="email"
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="bg-gray-700 border-gray-600 text-white"
                 value={formData.email}
                 onChange={handleChange}
                 required
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="password"
-                  className="text-gray-700 dark:text-gray-300"
-                >
+                <Label htmlFor="password" className="text-gray-300">
                   Password
                 </Label>
                 <Link
                   to={ROUTES.FORGOT_PASSWORD}
-                  className="text-sm text-primary hover:underline dark:text-primary-400"
+                  className="text-sm text-blue-400 hover:underline"
                 >
                   Forgot password?
                 </Link>
               </div>
-              <Input
-                id="password"
-                placeholder="••••••••"
-                type="password"
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
+                  className="bg-gray-700 border-gray-600 text-white pr-10"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-400"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -179,24 +163,21 @@ const Login = () => {
                   setFormData((prev) => ({ ...prev, rememberMe: checked }))
                 }
               />
-              <Label
-                htmlFor="rememberMe"
-                className="text-gray-700 dark:text-gray-300"
-              >
+              <Label htmlFor="rememberMe" className="text-gray-300">
                 Remember me
               </Label>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+          <div className="mt-6 text-center text-sm text-gray-400">
             Don't have an account?{" "}
             <Link
               to={ROUTES.SIGNUP}
-              className="text-primary hover:underline dark:text-primary-400"
+              className="text-blue-400 hover:underline"
             >
               Sign up
             </Link>
