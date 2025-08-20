@@ -211,7 +211,7 @@ const UrlHistory = () => {
                   className="focus:bg-gray-700 focus:text-white cursor-pointer"
                   onClick={() => setFilterOption("low")}
                 >
-                  Low Clicks (10-)
+                 Low Clicks (&lt;10)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -44,7 +44,7 @@ const Header = () => {
     // Logout logic would go here
     localStorage.clear();
     navigate(ROUTES.LOGIN, { replace: true });
-    console.log("User logged out");
+    
   };
 
   // Function to generate gradient based on user initials
