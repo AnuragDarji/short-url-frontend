@@ -100,7 +100,7 @@ const UrlHistory = () => {
   };
 
   const copyToClipboard = (shortId) => {
-    const shortUrl = `${window.location.origin}/${shortId}`;
+    const shortUrl = `https://short-url-eight-beta.vercel.app/${shortId}`;
     navigator.clipboard.writeText(shortUrl);
     // You could add a toast notification here for feedback
   };
@@ -314,7 +314,7 @@ const UrlHistory = () => {
                               asChild
                             >
                               <a
-                                href={`${window.location.origin}/${url.shortId}`}
+                                href={`https://short-url-eight-beta.vercel.app/${url.shortId}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
