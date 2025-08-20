@@ -35,17 +35,18 @@ const UrlShortener = () => {
 
     try {
       const response = await axios.post(
-        "https://short-url-delta-eight.vercel.app/url/",
+        "https://short-url-eight-beta.vercel.app/url/",
         { url: originalUrl },
         {
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token") || sessionStorage.getItem("token")}`,
           },
         }
       );
 
       setShortUrl(
-        `https://short-url-delta-eight.vercel.app/${response.data.id}`
+        `https://short-url-eight-beta.vercel.app/${response.data.id}`
       );
       setOriginalUrl("");
     } catch (err) {

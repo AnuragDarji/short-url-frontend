@@ -41,7 +41,7 @@ const Login = () => {
 
       // API call
       const response = await axios.post(
-        "https://short-url-delta-eight.vercel.app/api/login",
+        "https://short-url-eight-beta.vercel.app/api/login",
         payload
       );
 
@@ -56,14 +56,17 @@ const Login = () => {
 
       console.log("Login response:", response);
 
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
       // Store token if remember me is checked
-      if (formData.rememberMe && response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-      } else if (response.data.token) {
-        sessionStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-      }
+      // if (formData.rememberMe && response.data.token) {
+      //   localStorage.setItem("token", response.data.token);
+      //   localStorage.setItem("user", JSON.stringify(response.data.user));
+      // } else if (response.data.token) {
+      //   sessionStorage.setItem("token", response.data.token);
+      //   localStorage.setItem("user", JSON.stringify(response.data.user));
+      // }
 
       // Reset form
       setFormData({

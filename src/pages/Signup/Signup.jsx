@@ -60,7 +60,7 @@ const Signup = () => {
 
       // API call
       const response = await axios.post(
-        "https://short-url-delta-eight.vercel.app/api/signup",
+        "https://short-url-eight-beta.vercel.app/api/signup",
         payload
       );
 
