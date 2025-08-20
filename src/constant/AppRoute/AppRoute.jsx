@@ -1,16 +1,29 @@
-import Layout from '@/Layout/Layout'
-import Home from '@/pages/Home/Home'
-import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import React from "react";
+import { Route, Routes } from "react-router-dom";
+import { ROUTES } from "../routes";
+import Login from "@/pages/Login/Login";
+import Signup from "@/pages/Signup/Signup";
+import Dashboard from "@/pages/Home/Home"; // your Home is actually Dashboard
+import PrivateRoute from "./PrivateRoute";
 
 const AppRoute = () => {
   return (
     <Routes>
-        <Route path='/' element={<Layout/>}>
-            <Route index element={<Home/>}/>
-        </Route>
-    </Routes>
-  )
-}
+      {/* Public routes */}
+      <Route path={ROUTES.LOGIN} element={<Login />} />
+      <Route path={ROUTES.SIGNUP} element={<Signup />} />
 
-export default AppRoute
+      {/* Private route */}
+      <Route
+        path={ROUTES.DASHBOARD}
+        element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        }
+      />
+    </Routes>
+  );
+};
+
+export default AppRoute;
