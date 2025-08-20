@@ -260,7 +260,7 @@ const UrlHistory = () => {
                         <LinkIcon className="h-5 w-5 text-blue-400 mt-1 flex-shrink-0" />
                         <div className="min-w-0">
                           <h3 className="text-lg font-semibold text-white truncate">
-                            {window.location.origin}/{url.shortId}
+                            https://short-url-eight-beta.vercel.app/{url.shortId}
                           </h3>
                           <p className="text-gray-400 text-sm truncate">
                             {url.redirectUrl}
