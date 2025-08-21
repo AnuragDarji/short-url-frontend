@@ -48,6 +48,7 @@ const UrlHistory = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOption, setFilterOption] = useState("all");
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
   // Get token from localStorage or your auth context
@@ -107,6 +108,8 @@ const UrlHistory = () => {
   const copyToClipboard = (shortId) => {
     const shortUrl = `https://short-url-eight-beta.vercel.app/${shortId}`;
     navigator.clipboard.writeText(shortUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Reset copied state after 2 seconds
     // You could add a toast notification here for feedback
   };
 
@@ -317,14 +320,14 @@ const UrlHistory = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-9 bg-gray-800/50 border-gray-700 hover:bg-gray-700 hover:text-blue-400 text-white transition-colors"
+                                className="cursor-pointer h-9 bg-gray-800/50 border-gray-700 hover:bg-gray-700 hover:text-blue-400 text-white transition-colors"
                                 onClick={() => copyToClipboard(url.shortId)}
                               >
                                 <Copy className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent className="bg-gray-800 border-gray-700 text-white">
-                              <p>Copy short URL</p>
+                              <p>{copied ? "Copied!" : "Copy short URL"}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
