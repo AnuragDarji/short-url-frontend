@@ -39,6 +39,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/constant/routes";
 
 const UrlHistory = () => {
   const [urlData, setUrlData] = useState(null);
@@ -46,6 +48,7 @@ const UrlHistory = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOption, setFilterOption] = useState("all");
+  const navigate = useNavigate();
 
   // Get token from localStorage or your auth context
   const getAuthToken = () => {
@@ -220,7 +223,7 @@ const UrlHistory = () => {
                   className="focus:bg-gray-700 focus:text-white cursor-pointer transition-colors"
                   onClick={() => setFilterOption("low")}
                 >
-                 Low Clicks (&lt;10)
+                  Low Clicks (&lt;10)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -272,7 +275,8 @@ const UrlHistory = () => {
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="text-lg font-semibold text-white truncate flex items-center gap-2">
-                              https://short-url-eight-beta.vercel.app/{url.shortId}
+                              https://short-url-eight-beta.vercel.app/
+                              {url.shortId}
                               {url.totalClicks >= 10 && (
                                 <span className="bg-green-500/10 text-green-400 text-xs px-2 py-1 rounded-full flex items-center">
                                   <div className="h-1.5 w-1.5 bg-green-400 rounded-full mr-1 animate-pulse"></div>
@@ -290,7 +294,9 @@ const UrlHistory = () => {
                         <div className="flex flex-wrap items-center gap-4 mt-4">
                           <div className="flex items-center text-sm text-gray-300 bg-gray-800/30 px-3 py-1.5 rounded-full">
                             <MousePointerClick className="h-4 w-4 mr-1.5 text-blue-400" />
-                            <span className="font-medium">{url.totalClicks} clicks</span>
+                            <span className="font-medium">
+                              {url.totalClicks} clicks
+                            </span>
                           </div>
                           {url.analytics.length > 0 && (
                             <div className="flex items-center text-sm text-gray-300 bg-gray-800/30 px-3 py-1.5 rounded-full">
@@ -325,7 +331,7 @@ const UrlHistory = () => {
 
                         <TooltipProvider>
                           <Tooltip>
-                            <TooltipTrigger asChild >
+                            <TooltipTrigger asChild>
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -405,7 +411,10 @@ const UrlHistory = () => {
                     ? "Try adjusting your search term or filter"
                     : "You haven't created any shortened URLs yet"}
                 </p>
-                <Button className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg shadow-blue-500/20">
+                <Button
+                  className="cursor-pointer bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg shadow-blue-500/20"
+                  onClick={() => navigate(ROUTES.DASHBOARD)}
+                >
                   Create Your First URL
                 </Button>
               </CardContent>
