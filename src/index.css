@@ -121,3 +121,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+body {
+  @apply bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen;
+}
