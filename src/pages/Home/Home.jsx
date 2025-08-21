@@ -1,6 +1,6 @@
 import React from "react";
 import UrlShortener from "../UrlShortener/UrlShortener";
-import { calcLength } from "framer-motion";
+// import { calcLength } from "framer-motion";
 
 const Home = () => {
   return (

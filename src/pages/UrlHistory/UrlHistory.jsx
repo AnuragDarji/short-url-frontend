@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
   Card,
@@ -25,6 +25,7 @@ import {
   AlertCircle,
   Globe,
   ChevronDown,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,34 +42,45 @@ import {
 } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constant/routes";
+import { Badge } from "@/components/ui/badge";
+import toast, { Toaster } from "react-hot-toast";
 
 const UrlHistory = () => {
   const [urlData, setUrlData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOption, setFilterOption] = useState("all");
-  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
-  // Get token from localStorage or your auth context
+  // Get token from localStorage
   const getAuthToken = () => {
-    return localStorage.getItem("token"); // Adjust based on your token storage
+    return localStorage.getItem("token");
   };
 
   useEffect(() => {
     fetchUrlData();
   }, []);
 
-  const fetchUrlData = async () => {
+  const fetchUrlData = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+        toast.loading("Refreshing data...");
+      } else {
+        setLoading(true);
+      }
       setError(null);
 
       const token = getAuthToken();
       if (!token) {
-        setError("Authentication token not found");
+        const errorMsg = "Authentication token not found. Please log in again.";
+        setError(errorMsg);
         setLoading(false);
+        setRefreshing(false);
+        toast.error(errorMsg);
+        navigate(ROUTES.LOGIN);
         return;
       }
 
@@ -78,15 +90,25 @@ const UrlHistory = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          timeout: 10000, // 10 second timeout
         }
       );
 
       setUrlData(response.data);
+      if (isRefresh) {
+        toast.success("Data refreshed successfully!");
+      }
     } catch (err) {
       console.error("Error fetching URL data:", err);
-      setError(err.response?.data?.message || "Failed to fetch URL data");
+      const errorMessage =
+        err.response?.data?.message || err.code === "ECONNABORTED"
+          ? "Request timeout. Please try again."
+          : "Failed to fetch URL data. Please check your connection.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -108,13 +130,18 @@ const UrlHistory = () => {
   const copyToClipboard = (shortId) => {
     const shortUrl = `https://short-url-eight-beta.vercel.app/${shortId}`;
     navigator.clipboard.writeText(shortUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000); // Reset copied state after 2 seconds
-    // You could add a toast notification here for feedback
+    toast.success("URL copied to clipboard!");
   };
 
-  const filteredUrls =
-    urlData?.urls?.filter((url) => {
+  const clearSearch = () => {
+    setSearchTerm("");
+  };
+
+  // Memoized filtered URLs for better performance
+  const filteredUrls = useMemo(() => {
+    if (!urlData?.urls) return [];
+
+    return urlData.urls.filter((url) => {
       const matchesSearch =
         url.redirectUrl.toLowerCase().includes(searchTerm.toLowerCase()) ||
         url.shortId.toLowerCase().includes(searchTerm.toLowerCase());
@@ -123,11 +150,23 @@ const UrlHistory = () => {
       if (filterOption === "high")
         return matchesSearch && url.totalClicks >= 10;
       if (filterOption === "low") return matchesSearch && url.totalClicks < 10;
+      if (filterOption === "recent") {
+        // Show URLs created in the last 7 days
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        return matchesSearch && new Date(url.createdAt) > oneWeekAgo;
+      }
 
       return matchesSearch;
-    }) || [];
+    });
+  }, [urlData, searchTerm, filterOption]);
 
-  if (error) {
+  const handleRetry = () => {
+    setError(null);
+    fetchUrlData();
+  };
+
+  if (error && !loading) {
     return (
       <div className="min-h-[calc(100vh-102px)] flex items-center justify-center p-6">
         <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700 max-w-md w-full">
@@ -140,7 +179,7 @@ const UrlHistory = () => {
               <p className="text-red-400 text-lg font-medium mb-2">Error</p>
               <p className="text-gray-400 text-center mb-6">{error}</p>
               <Button
-                onClick={fetchUrlData}
+                onClick={handleRetry}
                 className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-lg shadow-blue-500/20"
               >
                 <RefreshCw className="mr-2 h-4 w-4" /> Try Again
@@ -168,16 +207,24 @@ const UrlHistory = () => {
           </p>
         </div>
 
-        <Button
-          onClick={fetchUrlData}
-          disabled={loading}
-          className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 transition-all duration-300 shadow-lg shadow-blue-500/20"
-        >
-          <RefreshCw
-            className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
-          />
-          Refresh Data
-        </Button>
+        <div className="flex gap-2">
+          <Badge
+            variant="outline"
+            className="bg-blue-500/10 text-blue-400 border-blue-500/20"
+          >
+            {urlData?.urls ? `${urlData.urls.length} URLs` : "0 URLs"}
+          </Badge>
+          <Button
+            onClick={() => fetchUrlData(true)}
+            disabled={loading || refreshing}
+            className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 transition-all duration-300 shadow-lg shadow-blue-500/20"
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+            />
+            {refreshing ? "Refreshing..." : "Refresh Data"}
+          </Button>
+        </div>
       </div>
 
       {/* Filters and Search */}
@@ -188,24 +235,34 @@ const UrlHistory = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Search by URL or short ID..."
-                className="pl-10 bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-colors"
+                className="pl-10 pr-10 bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-colors"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="bg-gray-800/50 border-gray-700 text-white hover:bg-gray-700/50 hover:text-white transition-colors"
+                  className="bg-gray-800/50 border-gray-700 text-white hover:bg-gray-700/50 hover:text-white transition-colors whitespace-nowrap"
                 >
                   <Filter className="mr-2 h-4 w-4" />
                   {filterOption === "all"
-                    ? "All Clicks"
+                    ? "All URLs"
                     : filterOption === "high"
                     ? "High Clicks"
-                    : "Low Clicks"}
+                    : filterOption === "low"
+                    ? "Low Clicks"
+                    : "Recent URLs"}
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -214,7 +271,7 @@ const UrlHistory = () => {
                   className="focus:bg-gray-700 focus:text-white cursor-pointer transition-colors"
                   onClick={() => setFilterOption("all")}
                 >
-                  All Clicks
+                  All URLs
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="focus:bg-gray-700 focus:text-white cursor-pointer transition-colors"
@@ -227,6 +284,12 @@ const UrlHistory = () => {
                   onClick={() => setFilterOption("low")}
                 >
                   Low Clicks (&lt;10)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="focus:bg-gray-700 focus:text-white cursor-pointer transition-colors"
+                  onClick={() => setFilterOption("recent")}
+                >
+                  Recent URLs
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -248,13 +311,16 @@ const UrlHistory = () => {
                       <div className="flex-1">
                         <Skeleton className="h-6 w-48 bg-gray-800/50 mb-2" />
                         <Skeleton className="h-4 w-64 bg-gray-800/50 mb-4" />
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-wrap">
                           <Skeleton className="h-5 w-20 bg-gray-800/50" />
                           <Skeleton className="h-5 w-20 bg-gray-800/50" />
                           <Skeleton className="h-5 w-20 bg-gray-800/50" />
                         </div>
                       </div>
-                      <Skeleton className="h-9 w-24 bg-gray-800/50 rounded-md" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-9 w-9 bg-gray-800/50 rounded-md" />
+                        <Skeleton className="h-9 w-9 bg-gray-800/50 rounded-md" />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -277,16 +343,26 @@ const UrlHistory = () => {
                             <LinkIcon className="h-5 w-5 text-blue-400 flex-shrink-0" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className="text-lg font-semibold text-white truncate flex items-center gap-2">
-                              https://short-url-eight-beta.vercel.app/
-                              {url.shortId}
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <h3 className="text-lg font-semibold text-white truncate flex items-center gap-2">
+                                https://short-url-eight-beta.vercel.app/
+                                {url.shortId}
+                              </h3>
                               {url.totalClicks >= 10 && (
-                                <span className="bg-green-500/10 text-green-400 text-xs px-2 py-1 rounded-full flex items-center">
+                                <Badge className="bg-green-500/10 text-green-400 hover:bg-green-500/20 border-0">
                                   <div className="h-1.5 w-1.5 bg-green-400 rounded-full mr-1 animate-pulse"></div>
                                   Popular
-                                </span>
+                                </Badge>
                               )}
-                            </h3>
+                              {new Date(url.createdAt) >
+                                new Date(
+                                  Date.now() - 7 * 24 * 60 * 60 * 1000
+                                ) && (
+                                <Badge className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-0">
+                                  New
+                                </Badge>
+                              )}
+                            </div>
                             <p className="text-gray-400 text-sm truncate flex items-center mt-1">
                               <Globe className="h-3.5 w-3.5 mr-1.5 text-gray-500 flex-shrink-0" />
                               {url.redirectUrl}
@@ -300,6 +376,10 @@ const UrlHistory = () => {
                             <span className="font-medium">
                               {url.totalClicks} clicks
                             </span>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-300 bg-gray-800/30 px-3 py-1.5 rounded-full">
+                            <Calendar className="h-4 w-4 mr-1.5 text-blue-400" />
+                            <span>Created: {formatDate(url.createdAt)}</span>
                           </div>
                           {url.analytics.length > 0 && (
                             <div className="flex items-center text-sm text-gray-300 bg-gray-800/30 px-3 py-1.5 rounded-full">
@@ -327,7 +407,7 @@ const UrlHistory = () => {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent className="bg-gray-800 border-gray-700 text-white">
-                              <p>{copied ? "Copied!" : "Copy short URL"}</p>
+                              <p>Copy short URL</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -363,7 +443,7 @@ const UrlHistory = () => {
                       <div className="mt-4 pt-4 border-t border-gray-800">
                         <h4 className="font-medium text-gray-300 mb-3 flex items-center">
                           <MapPin className="h-4 w-4 mr-2 text-blue-400" />
-                          Recent Clicks
+                          Recent Clicks ({url.analytics.length} total)
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {url.analytics.slice(0, 3).map((click) => (
@@ -379,6 +459,11 @@ const UrlHistory = () => {
                                   <p className="text-xs text-gray-400">
                                     {formatTime(click.timestamp)}
                                   </p>
+                                  {click.referrer && (
+                                    <p className="text-xs text-gray-500 mt-1 truncate">
+                                      From: {click.referrer}
+                                    </p>
+                                  )}
                                 </div>
                                 <div className="bg-green-500/10 p-1.5 rounded-full">
                                   <Shield className="h-3.5 w-3.5 text-green-400 flex-shrink-0" />
@@ -407,10 +492,12 @@ const UrlHistory = () => {
                   <BarChart3 className="h-10 w-10 text-blue-400" />
                 </div>
                 <h3 className="text-lg font-medium text-white mb-2">
-                  {searchTerm ? "No matching URLs found" : "No URLs found"}
+                  {searchTerm || filterOption !== "all"
+                    ? "No matching URLs found"
+                    : "No URLs found"}
                 </h3>
                 <p className="text-gray-400 mb-6">
-                  {searchTerm
+                  {searchTerm || filterOption !== "all"
                     ? "Try adjusting your search term or filter"
                     : "You haven't created any shortened URLs yet"}
                 </p>

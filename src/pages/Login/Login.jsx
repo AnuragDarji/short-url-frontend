@@ -79,7 +79,9 @@ const Login = () => {
               height: Math.floor(Math.random() * 150) + 80,
               top: `${Math.floor(Math.random() * 100)}%`,
               left: `${Math.floor(Math.random() * 100)}%`,
-              animation: `float ${Math.floor(Math.random() * 12) + 8}s infinite ease-in-out`,
+              animation: `float ${
+                Math.floor(Math.random() * 12) + 8
+              }s infinite ease-in-out`,
               animationDelay: `${Math.floor(Math.random() * 5)}s`,
             }}
           />
@@ -110,7 +112,10 @@ const Login = () => {
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-300 text-sm font-medium">
+              <Label
+                htmlFor="email"
+                className="text-gray-300 text-sm font-medium"
+              >
                 Email
               </Label>
               <Input
@@ -126,7 +131,10 @@ const Login = () => {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-gray-300 text-sm font-medium">
+                <Label
+                  htmlFor="password"
+                  className="text-gray-300 text-sm font-medium"
+                >
                   Password
                 </Label>
                 <Link
@@ -208,16 +216,26 @@ const Login = () => {
           &{" "}
           <span className="text-blue-400 hover:text-blue-300 cursor-pointer">
             Privacy
-          </span>.
+          </span>
+          .
         </p>
       </div>
 
       <style jsx>{`
         @keyframes float {
-          0%, 100% { transform: translate(0, 0) rotate(0deg); }
-          25% { transform: translate(5px, 5px) rotate(1deg); }
-          50% { transform: translate(10px, 0px) rotate(0deg); }
-          75% { transform: translate(5px, -5px) rotate(-1deg); }
+          0%,
+          100% {
+            transform: translate(0, 0) rotate(0deg);
+          }
+          25% {
+            transform: translate(5px, 5px) rotate(1deg);
+          }
+          50% {
+            transform: translate(10px, 0px) rotate(0deg);
+          }
+          75% {
+            transform: translate(5px, -5px) rotate(-1deg);
+          }
         }
       `}</style>
     </div>
