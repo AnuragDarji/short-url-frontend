@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ROUTES } from "@/constant/routes";
 import { Home, Link2, LogOut, Menu, X, Sparkles, Settings } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import toast from "react-hot-toast";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -18,6 +20,7 @@ const Header = () => {
   const currentPath = location.pathname;
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const getInitials = (name) => {
     if (!name) return "";
@@ -26,7 +29,9 @@ const Header = () => {
     return (words[0][0] + words[words.length - 1][0]).toUpperCase();
   };
 
-  const avatarInitials = getInitials(user.name || "User");
+  console.log(user);
+
+  const avatarInitials = getInitials(user?.name || "User");
 
   // Sample user data
   // const user = {
@@ -42,9 +47,13 @@ const Header = () => {
 
   const handleLogout = () => {
     // Logout logic would go here
-    localStorage.clear();
+    const result = logout();
     navigate(ROUTES.LOGIN, { replace: true });
-    
+    if (result.success) {
+      toast.success("You have been logged out successfully.", {
+        description: result.message,
+      });
+    }
   };
 
   // Function to generate gradient based on user initials
@@ -151,9 +160,9 @@ const Header = () => {
                       </div>
 
                       <div>
-                        <p className="text-sm font-medium">{user.name}</p>
+                        <p className="text-sm font-medium">{user?.name}</p>
                         <p className="text-xs text-gray-400 truncate max-w-[160px]">
-                          {user.email}
+                          {user?.email}
                         </p>
                       </div>
                     </div>
@@ -237,8 +246,8 @@ const Header = () => {
                   <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-gray-900"></span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-gray-400">{user.email}</p>
+                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-xs text-gray-400">{user?.email}</p>
                 </div>
               </div>
 

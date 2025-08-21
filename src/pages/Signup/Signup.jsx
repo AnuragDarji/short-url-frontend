@@ -1,13 +1,14 @@
+// src/components/Signup.jsx
 import React, { useState } from "react";
-import axios from "axios";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Toaster, toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constant/routes";
-import { Eye, EyeOff } from "lucide-react"; // 👈 icons for show/hide password
+import toast from "react-hot-toast";
+import { Eye, EyeOff, Sparkles, UserPlus } from "lucide-react";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -18,9 +19,12 @@ const Signup = () => {
     confirmPassword: "",
     agreeToTerms: false,
   });
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { signup } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
@@ -32,11 +36,13 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
       toast.error("Password mismatch", {
         description: "Passwords do not match. Please try again.",
       });
+      setIsLoading(false);
       return;
     }
 
@@ -44,107 +50,99 @@ const Signup = () => {
       toast.error("Terms not accepted", {
         description: "Please agree to the terms and conditions.",
       });
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
     const loadingToast = toast.loading("Creating your account...");
 
     try {
-      const payload = {
-        name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        password: formData.password,
-      };
-
-      const response = await axios.post(
-        "https://short-url-eight-beta.vercel.app/api/signup",
-        payload
+      const result = await signup(
+        `${formData.firstName} ${formData.lastName}`,
+        formData.email,
+        formData.password
       );
 
-      toast.dismiss(loadingToast);
-
-      if (response.status === 200 || response.status === 201) {
+      if (result.success) {
+        toast.dismiss(loadingToast);
         toast.success("Account created successfully!", {
-          description:
-            response.data.msg ||
-            "Your account has been created. You can now sign in.",
+          description: result.message,
+        });
+
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          agreeToTerms: false,
+        });
+
+        setTimeout(() => {
+          navigate(ROUTES.LOGIN);
+        }, 1200);
+      } else {
+        toast.dismiss(loadingToast);
+        toast.error("Signup failed", {
+          description: result.error,
         });
       }
-
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        agreeToTerms: false,
-      });
     } catch (error) {
       toast.dismiss(loadingToast);
-
-      let errorMessage = "An error occurred during signup. Please try again.";
-
-      if (error.response) {
-        if (error.response.status === 409) {
-          errorMessage = "Email already exists. Please use a different email.";
-        } else if (error.response.status === 400) {
-          errorMessage = "Invalid data. Please check your inputs.";
-        } else {
-          errorMessage = error.response.data.message || errorMessage;
-        }
-      } else if (error.request) {
-        errorMessage = "Network error. Please check your connection.";
-      }
-
-      toast.error("Signup failed", {
-        description: errorMessage,
-      });
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
-      <Toaster position="top-center" richColors closeButton />
-      <div className="w-full max-w-md space-y-8">
-        <div className="bg-gray-800 rounded-lg shadow-md p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white">
-              Create an account
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-4">
+      <div className="w-full max-w-sm space-y-4">
+        <div className="bg-gray-800/80 backdrop-blur-md rounded-lg shadow-xl p-6 border border-gray-700/50 relative">
+          {/* Logo + Brand */}
+          <div className="flex flex-col items-center mb-2">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md mb-2">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <h1 className="text-lg font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Short.ly
             </h1>
-            <p className="text-gray-400">
-              Enter your details to create your account
+          </div>
+
+          {/* Title */}
+          <div className="text-center mb-5">
+            <h2 className="text-xl font-bold text-white">Create Account</h2>
+            <p className="text-gray-400 text-sm">
+              Start shortening your links in seconds
             </p>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-gray-300">
+          {/* Form */}
+          <form className="space-y-3" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="firstName" className="text-gray-300 text-xs mb-1.5">
                   First Name
                 </Label>
                 <Input
                   id="firstName"
                   placeholder="John"
                   type="text"
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-gray-700/50 border-gray-600 text-white h-9 text-sm"
                   value={formData.firstName}
                   onChange={handleChange}
                   required
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-gray-300">
+              <div>
+                <Label htmlFor="lastName" className="text-gray-300 text-xs mb-1.5">
                   Last Name
                 </Label>
                 <Input
                   id="lastName"
                   placeholder="Doe"
                   type="text"
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-gray-700/50 border-gray-600 text-white h-9 text-sm"
                   value={formData.lastName}
                   onChange={handleChange}
                   required
@@ -152,24 +150,23 @@ const Signup = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-300">
-                Email address
+            <div>
+              <Label htmlFor="email" className="text-gray-300 text-xs mb-1.5">
+                Email
               </Label>
               <Input
                 id="email"
                 placeholder="name@example.com"
                 type="email"
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-gray-700/50 border-gray-600 text-white h-9 text-sm"
                 value={formData.email}
                 onChange={handleChange}
                 required
               />
             </div>
 
-            {/* Password */}
-            <div className="space-y-2 relative">
-              <Label htmlFor="password" className="text-gray-300">
+            <div>
+              <Label htmlFor="password" className="text-gray-300 text-xs mb-1.5">
                 Password
               </Label>
               <div className="relative">
@@ -177,7 +174,7 @@ const Signup = () => {
                   id="password"
                   placeholder="••••••••"
                   type={showPassword ? "text" : "password"}
-                  className="bg-gray-700 border-gray-600 text-white pr-10"
+                  className="bg-gray-700/50 border-gray-600 text-white h-9 text-sm pr-8"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -185,19 +182,15 @@ const Signup = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  className="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-gray-200"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              <p className="text-xs text-gray-400">
-                Must be at least 8 characters with one uppercase and one number
-              </p>
             </div>
 
-            {/* Confirm Password */}
-            <div className="space-y-2 relative">
-              <Label htmlFor="confirmPassword" className="text-gray-300">
+            <div>
+              <Label htmlFor="confirmPassword" className="text-gray-300 text-xs mb-1.5">
                 Confirm Password
               </Label>
               <div className="relative">
@@ -205,27 +198,22 @@ const Signup = () => {
                   id="confirmPassword"
                   placeholder="••••••••"
                   type={showConfirmPassword ? "text" : "password"}
-                  className="bg-gray-700 border-gray-600 text-white pr-10"
+                  className="bg-gray-700/50 border-gray-600 text-white h-9 text-sm pr-8"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-gray-200"
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
+            {/* Terms */}
             <div className="flex items-center space-x-2">
               <Switch
                 id="agreeToTerms"
@@ -233,21 +221,39 @@ const Signup = () => {
                 onCheckedChange={(checked) =>
                   setFormData((prev) => ({ ...prev, agreeToTerms: checked }))
                 }
+                className="data-[state=checked]:bg-blue-500"
                 required
               />
-              <Label htmlFor="agreeToTerms" className="text-gray-300">
-                I agree to the Terms and Conditions
+              <Label htmlFor="agreeToTerms" className="text-gray-300 text-xs">
+                I agree to{" "}
+                <Link to="/terms" className="text-blue-400 hover:text-blue-300">
+                  Terms
+                </Link>
               </Label>
             </div>
 
-            <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create Account"}
+            {/* Button */}
+            <Button
+              type="submit"
+              className="w-full h-9 text-sm cursor-pointer bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-md"
+              disabled={isLoading}
+            >
+              {isLoading ? "Creating..." : (
+                <>
+                  <UserPlus size={16} className="mr-1" />
+                  Sign Up
+                </>
+              )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-400">
+          {/* Footer */}
+          <div className="mt-4 text-center text-xs text-gray-400">
             Already have an account?{" "}
-            <Link to={ROUTES.LOGIN} className="text-blue-400 hover:underline">
+            <Link
+              to={ROUTES.LOGIN}
+              className="text-blue-400 hover:text-blue-300 font-medium"
+            >
               Sign in
             </Link>
           </div>

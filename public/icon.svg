@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Transparent background (no rect behind) -->
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F8BFF"/>
+      <stop offset="100%" stop-color="#8A3CFF"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="20" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Rounded square with gradient fill -->
+  <rect x="112" y="112" width="800" height="800" rx="200" fill="url(#g)" filter="url(#softShadow)"/>
+
+  <!-- Spark/star (rounded diamond) -->
+  <path fill="white" d="
+    M512 290
+    C540 380, 620 460, 708 488
+    C620 516, 540 596, 512 686
+    C484 596, 404 516, 316 488
+    C404 460, 484 380, 512 290 Z
+  " />
+
+  <!-- Outer star stroke for thicker, friendly look -->
+  <path fill="none" stroke="white" stroke-width="36" stroke-linecap="round" d="
+    M512 322
+    C535 399, 607 471, 684 494
+    C607 517, 535 589, 512 666
+    C489 589, 417 517, 340 494
+    C417 471, 489 399, 512 322 Z
+  "/>
+
+  <!-- Dot (bottom-left) -->
+  <circle cx="360" cy="640" r="28" fill="white"/>
+
+  <!-- Plus (top-right) -->
+  <g transform="translate(670, 340)">
+    <rect x="-18" y="-4" width="36" height="8" rx="4" fill="white"/>
+    <rect x="-4" y="-18" width="8" height="36" rx="4" fill="white"/>
+  </g>
+</svg>
